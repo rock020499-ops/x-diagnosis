@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xアカウント伸び悩み診断</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: #0a0a0f;
+    color: #e8e8f0;
+    font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+    padding: 40px 20px 80px;
+  }
+
+  .bg-glow {
+    position: fixed; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99,60,255,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .container { position: relative; z-index: 1; max-width: 660px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 44px; }
+  .badge {
+    display: inline-block; font-size: 11px; letter-spacing: 0.2em;
+    color: #7c6fff; background: rgba(124,111,255,0.1);
+    border: 1px solid rgba(124,111,255,0.3); border-radius: 99px;
+    padding: 4px 14px; margin-bottom: 16px; text-transform: uppercase;
+  }
+  h1 {
+    font-size: clamp(20px, 5vw, 30px); font-weight: 800; line-height: 1.4;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #fff 40%, #9b8fff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle { color: #888; font-size: 13px; }
+
+  .card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 18px 20px; margin-bottom: 12px;
+  }
+  .card-title { font-size: 12px; font-weight: 700; color: #7c6fff; margin-bottom: 8px; letter-spacing: 0.05em; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+  textarea, input[type=text], input[type=number] {
+    width: 100%; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+    color: #e8e8f0; font-size: 14px; padding: 12px 14px;
+    outline: none; font-family: inherit; line-height: 1.7;
+  }
+  textarea { resize: vertical; }
+  textarea::placeholder, input::placeholder { color: #555; }
+
+  .btn {
+    width: 100%; padding: 16px;
+    background: linear-gradient(135deg, #7c6fff, #5a45e8);
+    color: #fff; border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 24px rgba(124,111,255,0.35);
+    transition: opacity 0.2s; margin-top: 4px;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+  .btn-reset {
+    background: rgba(255,255,255,0.05); color: #aaa;
+    border: 1px solid rgba(255,255,255,0.1); box-shadow: none;
+    margin-top: 20px;
+  }
+
+  .error { color: #ff6b6b; font-size: 13px; text-align: center; margin-bottom: 10px; }
+
+  /* Result */
+  .score-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px; padding: 32px 24px; margin-bottom: 14px; text-align: center;
+  }
+  .score-svg { margin: 0 auto 16px; display: block; }
+  .type-badge {
+    display: inline-block; background: rgba(124,111,255,0.15);
+    border: 1px solid rgba(124,111,255,0.3); border-radius: 8px;
+    padding: 6px 16px; font-size: 13px; color: #b8aeff; margin-bottom: 10px;
+  }
+  .type-desc { color: #aaa; font-size: 14px; line-height: 1.7; }
+
+  .advice-card {
+    background: linear-gradient(135deg, rgba(124,111,255,0.15), rgba(0,229,160,0.08));
+    border: 1px solid rgba(124,111,255,0.3); border-radius: 14px;
+    padding: 18px 20px; margin-bottom: 16px; text-align: center;
+  }
+  .advice-label { font-size: 11px; color: #7c6fff; letter-spacing: 0.1em; margin-bottom: 6px; }
+  .advice-text { font-size: 18px; font-weight: 700; color: #fff; }
+
+  .section-title { font-size: 13px; font-weight: 700; color: #888; letter-spacing: 0.08em; margin: 20px 0 10px; }
+
+  .problem-item {
+    background: rgba(255,107,107,0.05); border: 1px solid rgba(255,107,107,0.15);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+  }
+  .problem-title { font-size: 13px; font-weight: 700; color: #ff9090; margin-bottom: 4px; }
+  .problem-detail { font-size: 13px; color: #bbb; line-height: 1.7; }
+
+  .action-item {
+    background: rgba(0,229,160,0.04); border: 1px solid rgba(0,229,160,0.15);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .action-num {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(0,229,160,0.15); border: 1px solid rgba(0,229,160,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: #00e5a0;
+  }
+  .action-title { font-size: 13px; font-weight: 700; color: #00e5a0; margin-bottom: 4px; }
+  .action-detail { font-size: 13px; color: #bbb; line-height: 1.7; }
+
+  .spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.2); border-top-color: #fff;
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+    vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #result { display: none; }
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">X Account Analyzer</div>
+    <h1>フォロワーが伸びない原因を<br>AIが本音で診断します</h1>
+    <p class="subtitle">100〜1000人で伸び悩んでいるアカウント向け</p>
+  </div>
+
+  <!-- Input Form -->
+  <div id="form">
+    <div class="card">
+      <div class="card-title">① プロフィール文をコピペ</div>
+      <textarea id="profile" rows="4" placeholder="名前・肩書き・自己紹介文をそのまま貼り付けてください"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-title">② 直近5〜10投稿をコピペ</div>
+      <textarea id="posts" rows="7" placeholder="最近の投稿を改行区切りで貼り付けてください&#10;例：&#10;副業で月5万を達成しました。実践したことは...&#10;AIを使った作業効率化で..."></textarea>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">③ フォロワー数</div>
+        <input type="number" id="followers" placeholder="例：450">
+      </div>
+      <div class="card">
+        <div class="card-title">④ 運用期間</div>
+        <input type="text" id="period" placeholder="例：6ヶ月">
+      </div>
+    </div>
+
+    <p class="error" id="error-msg"></p>
+    <button class="btn" id="diagnose-btn" onclick="diagnose()">AIに本音で診断してもらう →</button>
+  </div>
+
+  <!-- Result -->
+  <div id="result">
+    <div class="score-card">
+      <svg class="score-svg" width="130" height="130" viewBox="0 0 130 130" id="score-svg">
+        <circle cx="65" cy="65" r="54" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10"/>
+        <circle id="score-arc" cx="65" cy="65" r="54" fill="none" stroke="#00e5a0"
+          stroke-width="10" stroke-linecap="round" transform="rotate(-90 65 65)"
+          stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+        <text id="score-num" x="65" y="60" text-anchor="middle" fill="#fff" font-size="28" font-weight="800" font-family="inherit">0</text>
+        <text id="score-label" x="65" y="79" text-anchor="middle" fill="#888" font-size="11" font-family="inherit">診断中</text>
+      </svg>
+      <div class="type-badge" id="account-type">―</div>
+      <p class="type-desc" id="account-type-desc"></p>
+    </div>
+
+    <div class="advice-card">
+      <div class="advice-label">ONE ADVICE</div>
+      <div class="advice-text" id="one-advice"></div>
+    </div>
+
+    <div class="section-title">⚠ 伸び悩みの原因</div>
+    <div id="problems-list"></div>
+
+    <div class="section-title">✓ 今すぐやるべきこと</div>
+    <div id="actions-list"></div>
+
+    <button class="btn btn-reset" onclick="reset()">もう一度診断する</button>
+  </div>
+
+</div>
+
+<script>
+const SYSTEM_PROMPT = `あなたはXのアカウント成長の専門家です。
+ユーザーのプロフィールと投稿内容を分析し、フォロワー伸び悩みの原因と改善策を診断してください。
+
+以下のJSON形式のみで回答してください。前後に説明文やMarkdownコードブロックは不要です：
+
+{
+  "accountType": "アカウントタイプ名（例：情報発信型・共感訴求型など）",
+  "accountTypeDesc": "このタイプの特徴を1〜2文で",
+  "score": 全体スコア（0〜100の整数）,
+  "scoreLabel": "スコアの評価ラベル（例：要改善・普通・良好・優秀）",
+  "problems": [
+    {"title": "問題点のタイトル", "detail": "具体的な説明（2〜3文）"},
+    {"title": "問題点のタイトル", "detail": "具体的な説明（2〜3文）"},
+    {"title": "問題点のタイトル", "detail": "具体的な説明（2〜3文）"}
+  ],
+  "actions": [
+    {"step": 1, "title": "アクションタイトル", "detail": "具体的な行動（1〜2文）"},
+    {"step": 2, "title": "アクションタイトル", "detail": "具体的な行動（1〜2文）"},
+    {"step": 3, "title": "アクションタイトル", "detail": "具体的な行動（1〜2文）"}
+  ],
+  "oneAdvice": "最も重要な一言アドバイス（30文字以内）"
+}`;
+
+async function diagnose() {
+  const profile = document.getElementById('profile').value.trim();
+  const posts = document.getElementById('posts').value.trim();
+  const followers = document.getElementById('followers').value;
+  const period = document.getElementById('period').value;
+  const errEl = document.getElementById('error-msg');
+
+  if (!profile || !posts) {
+    errEl.textContent = 'プロフィールと投稿内容は必須です';
+    return;
+  }
+  errEl.textContent = '';
+
+  const btn = document.getElementById('diagnose-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>診断中...';
+
+  const userMessage = `【プロフィール文】\n${profile}\n\n【直近の投稿】\n${posts}\n\n【フォロワー数】${followers || '不明'}人\n【運用期間】${period || '不明'}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userMessage }]
+      })
+    });
+    const data = await res.json();
+    const text = (data.content || []).map(b => b.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const r = JSON.parse(clean);
+    renderResult(r);
+  } catch(e) {
+    errEl.textContent = '診断中にエラーが発生しました。もう一度お試しください。';
+    btn.disabled = false;
+    btn.textContent = 'AIに本音で診断してもらう →';
+  }
+}
+
+function renderResult(r) {
+  // Score
+  const circumference = 2 * Math.PI * 54;
+  const offset = circumference - (r.score / 100) * circumference;
+  const color = r.score >= 75 ? '#00e5a0' : r.score >= 50 ? '#ffd166' : '#ff6b6b';
+  const arc = document.getElementById('score-arc');
+  arc.setAttribute('stroke', color);
+  setTimeout(() => { arc.style.transition = 'stroke-dashoffset 1s ease'; arc.setAttribute('stroke-dashoffset', offset); }, 50);
+  document.getElementById('score-num').textContent = r.score;
+  document.getElementById('score-label').textContent = r.scoreLabel;
+
+  document.getElementById('account-type').textContent = 'タイプ：' + r.accountType;
+  document.getElementById('account-type-desc').textContent = r.accountTypeDesc;
+  document.getElementById('one-advice').textContent = '「' + r.oneAdvice + '」';
+
+  const pl = document.getElementById('problems-list');
+  pl.innerHTML = r.problems.map(p => `
+    <div class="problem-item">
+      <div class="problem-title">✗ ${p.title}</div>
+      <div class="problem-detail">${p.detail}</div>
+    </div>`).join('');
+
+  const al = document.getElementById('actions-list');
+  al.innerHTML = r.actions.map(a => `
+    <div class="action-item">
+      <div class="action-num">${a.step}</div>
+      <div>
+        <div class="action-title">${a.title}</div>
+        <div class="action-detail">${a.detail}</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('form').style.display = 'none';
+  document.getElementById('result').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function reset() {
+  document.getElementById('form').style.display = 'block';
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('diagnose-btn').disabled = false;
+  document.getElementById('diagnose-btn').textContent = 'AIに本音で診断してもらう →';
+  document.getElementById('score-arc').setAttribute('stroke-dashoffset', '339.3');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
