@@ -190,8 +190,15 @@
     </div>
 
     <div class="card">
-      <div class="card-title">② 直近5〜10投稿をコピペ</div>
-      <textarea id="posts" rows="7" placeholder="最近の投稿を改行区切りで貼り付けてください&#10;例：&#10;副業で月5万を達成しました。実践したことは...&#10;AIを使った作業効率化で..."></textarea>
+      <div class="card-title">② 直近5〜10投稿をコピペ（「---」で区切る）</div>
+      <textarea id="posts" rows="8" placeholder="投稿と投稿の間に「---」を入れて区切ってください
+例：
+副業で月5万を達成しました。
+実践したことは...
+---
+AIを使った作業効率化で
+毎日2時間節約できています。
+---"></textarea>
     </div>
 
     <div class="grid2">
@@ -284,7 +291,7 @@ async function diagnose() {
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-latest:generateContent?key=${apikey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apikey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
